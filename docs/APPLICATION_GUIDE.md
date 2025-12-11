@@ -6,9 +6,13 @@ Este documento serve como um guia para o desenvolvimento do nosso site de mercad
 
 A plataforma permitirá que os usuários comprem e vendam ações de resultados de eventos futuros. O preço das ações refletirá a probabilidade percebida do resultado de um evento.
 
+### Idioma
+
+Toda a interface do usuário, comunicação e conteúdo do site devem ser apresentados em **português (Brasil)**.
+
 ## Temas Principais dos Mercados
 
-Para manter o foco inicial, nosso mercado de previsões se concentrará majoritariamente em três temas:
+Para manter o foco inicial, nosso mercado de previsões se concentrará majoritariamente nos três temas a seguir. A criação de novos mercados deve aderir a estas categorias.
 
 1.  **Fofoca Midiática:** Eventos relacionados a influenciadores digitais, celebridades e cultura pop.
 2.  **Futebol:** Resultados de partidas, transferências de jogadores e outros eventos relacionados ao mundo do futebol.
@@ -132,7 +136,6 @@ A seguir, a stack tecnológica principal utilizada neste projeto:
 *   **NextAuth.js:** Solução completa de autenticação para aplicações Next.js.
 *   **Google Generative AI:** Integração com modelos de inteligência artificial generativa do Google.
 *   **ioredis:** Cliente Redis de alto desempenho para caching e outras funcionalidades.
-*   **pdf-parse:** Biblioteca para parsing de documentos PDF.
 
 ## Próximos Passos
 

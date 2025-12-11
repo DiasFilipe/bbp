@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from './theme-toggle';
 
 const SearchIcon = () => (
   <svg
@@ -19,8 +20,8 @@ const SearchIcon = () => (
 
 export default function Header() {
   return (
-    <header className="bg-pm-light-dark border-b border-pm-light-gray">
-      <div className="container mx-auto flex items-center justify-between p-4 text-white">
+    <header className="bg-white dark:bg-pm-light-dark border-b border-gray-200 dark:border-pm-light-gray">
+      <div className="container mx-auto flex items-center justify-between p-4">
         <div className="flex items-center space-x-8">
           <div className="text-2xl font-bold">
             <Link href="/">BBP</Link>
@@ -28,8 +29,8 @@ export default function Header() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search markets"
-              className="bg-pm-dark border border-pm-light-gray rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-pm-blue"
+              placeholder="Buscar mercados"
+              className="bg-gray-100 dark:bg-pm-dark border border-gray-300 dark:border-pm-light-gray rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-pm-blue"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <SearchIcon />
@@ -37,21 +38,22 @@ export default function Header() {
           </div>
         </div>
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/markets" className="text-pm-gray hover:text-white text-sm font-medium">
-            Markets
+          <Link href="/markets" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
+            Mercados
           </Link>
-          <Link href="/portfolio" className="text-pm-gray hover:text-white text-sm font-medium">
-            Portfolio
+          <Link href="/portfolio" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
+            Portfólio
           </Link>
-          <Link href="/leaderboard" className="text-pm-gray hover:text-white text-sm font-medium">
-            Leaderboard
+          <Link href="/leaderboard" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
+            Ranking
           </Link>
-          <div className='flex items-center space-x-2'>
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <button className="bg-pm-blue text-white px-4 py-2 rounded-md text-sm font-semibold">
-              Sign Up
+              Cadastrar
             </button>
-            <button className="bg-pm-light-gray text-white px-4 py-2 rounded-md text-sm font-semibold">
-              Log In
+            <button className="bg-gray-200 hover:bg-gray-300 text-pm-dark dark:bg-pm-light-gray dark:hover:bg-pm-gray dark:text-white px-4 py-2 rounded-md text-sm font-semibold">
+              Entrar
             </button>
           </div>
         </nav>

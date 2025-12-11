@@ -2,27 +2,27 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-pm-light-dark border-t border-pm-light-gray mt-10">
-      <div className="container mx-auto py-8 px-4 text-white">
+    <footer className="bg-white dark:bg-pm-light-dark border-t border-gray-200 dark:border-pm-light-gray mt-10">
+      <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="text-sm text-pm-gray mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} BBP. All rights reserved.
+          <div className="text-sm text-gray-500 dark:text-pm-gray mb-4 md:mb-0">
+            &copy; {new Date().getFullYear()} BBP. Todos os direitos reservados.
           </div>
           <div className="flex space-x-6">
-            <Link href="/privacy" className="text-sm text-pm-gray hover:text-white">
-              Privacy
+            <Link href="/privacy" className="text-sm text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white">
+              Privacidade
             </Link>
-            <Link href="/terms" className="text-sm text-pm-gray hover:text-white">
-              Terms of Use
+            <Link href="/terms" className="text-sm text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white">
+              Termos de Uso
             </Link>
-            <Link href="/learn" className="text-sm text-pm-gray hover:text-white">
-              Learn
+            <Link href="/learn" className="text-sm text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white">
+              Aprenda
             </Link>
-            <Link href="/careers" className="text-sm text-pm-gray hover:text-white">
-              Careers
+            <Link href="/careers" className="text-sm text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white">
+              Carreiras
             </Link>
-            <Link href="/press" className="text-sm text-pm-gray hover:text-white">
-              Press
+            <Link href="/press" className="text-sm text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white">
+              Imprensa
             </Link>
           </div>
         </div>
