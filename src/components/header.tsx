@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './theme-toggle';
+import { useSession, signOut } from 'next-auth/react';
 
 const SearchIcon = () => (
   <svg
@@ -19,6 +20,8 @@ const SearchIcon = () => (
 );
 
 export default function Header() {
+  const { data: session, status } = useSession();
+
   return (
     <header className="bg-white dark:bg-pm-light-dark border-b border-gray-200 dark:border-pm-light-gray">
       <div className="container mx-auto flex items-center justify-between p-4">
@@ -47,14 +50,37 @@ export default function Header() {
           <Link href="/leaderboard" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
             Ranking
           </Link>
+          <Link href="/markets/create" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
+            Criar Mercado
+          </Link>
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <button className="bg-pm-blue text-white px-4 py-2 rounded-md text-sm font-semibold">
-              Cadastrar
-            </button>
-            <button className="bg-gray-200 hover:bg-gray-300 text-pm-dark dark:bg-pm-light-gray dark:hover:bg-pm-gray dark:text-white px-4 py-2 rounded-md text-sm font-semibold">
-              Entrar
-            </button>
+            {status === 'authenticated' ? (
+              <>
+                <span className="text-sm font-medium text-pm-dark dark:text-white">
+                  Bem-vindo, {session.user?.email}
+                </span>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="bg-gray-200 hover:bg-gray-300 text-pm-dark dark:bg-pm-light-gray dark:hover:bg-pm-gray dark:text-white px-4 py-2 rounded-md text-sm font-semibold"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/signup">
+                  <button className="bg-pm-blue text-white px-4 py-2 rounded-md text-sm font-semibold">
+                    Cadastrar
+                  </button>
+                </Link>
+                <Link href="/login">
+                  <button className="bg-gray-200 hover:bg-gray-300 text-pm-dark dark:bg-pm-light-gray dark:hover:bg-pm-gray dark:text-white px-4 py-2 rounded-md text-sm font-semibold">
+                    Entrar
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </div>

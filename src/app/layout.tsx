@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import Footer from "@/components/footer";
+import { SessionProvider } from "next-auth/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,9 +37,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+          <SessionProvider>
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -143,3 +143,7 @@ A seguir, a stack tecnológica principal utilizada neste projeto:
 2.  **Executar a Migração do Prisma:** Rodar `npx prisma migrate dev --name init` para criar as tabelas no banco de dados.
 3.  **Desenvolver a Lógica de Negociação:** Implementar as funções para comprar e vender ações, atualizando os preços e as posições dos usuários.
 
+## Instruções do Ambiente de Desenvolvimento
+
+**Nota para o Gemini CLI:** Não é necessário executar `npm run dev`. O usuário está acompanhando o ambiente de desenvolvimento.
+
