@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { ThemeToggle } from './theme-toggle';
 import { useSession, signOut } from 'next-auth/react';
@@ -55,11 +57,16 @@ export default function Header() {
           </Link>
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            {status === 'authenticated' ? (
+            {status === 'authenticated' && session.user ? (
               <>
-                <span className="text-sm font-medium text-pm-dark dark:text-white">
-                  Bem-vindo, {session.user?.email}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-gray-500 dark:text-pm-gray">
+                    Bem-vindo, {session.user.name || session.user.email}
+                  </span>
+                  <span className="text-sm font-bold text-pm-green">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(session.user.balance || 0)}
+                  </span>
+                </div>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="bg-gray-200 hover:bg-gray-300 text-pm-dark dark:bg-pm-light-gray dark:hover:bg-pm-gray dark:text-white px-4 py-2 rounded-md text-sm font-semibold"

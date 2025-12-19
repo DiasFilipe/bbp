@@ -1,10 +1,9 @@
-// src/app/api/auth/[...nextauth]/route.ts
-import NextAuth from 'next-auth';
+import NextAuth, { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -22,10 +21,9 @@ export const authOptions = {
         });
 
         if (user && bcrypt.compareSync(credentials.password, user.password)) {
-          // Return a user object, but without the password
-          return { id: user.id, name: user.name, email: user.email };
+          // Return the full user object to be used in the JWT callback
+          return user;
         } else {
-          // If you return null then an error will be displayed advising the user to check their details.
           return null;
         }
       }
@@ -36,26 +34,36 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }) {
+      // On initial sign-in, user object is available
       if (user) {
         token.id = user.id;
+        token.balance = (user as any).balance; // Cast to any to access balance
+      } else {
+        // On subsequent requests, token exists, fetch updated user data
+        if (token.id) {
+          const dbUser = await prisma.user.findUnique({ where: { id: token.id } });
+          if (dbUser) {
+            token.balance = dbUser.balance;
+          }
+        }
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.balance = token.balance;
       }
       return session;
     },
   },
   pages: {
     signIn: '/login',
-    // error: '/auth/error', // Error code passed in query string as ?error=
-    // signOut: '/auth/signout',
   }
 };
 
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
+

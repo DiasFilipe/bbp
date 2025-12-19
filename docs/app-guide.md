@@ -147,3 +147,38 @@ A seguir, a stack tecnológica principal utilizada neste projeto:
 
 **Nota para o Gemini CLI:** Não é necessário executar `npm run dev`. O usuário está acompanhando o ambiente de desenvolvimento.
 
+## Roadmap de Desenvolvimento
+
+A seguir, um roadmap sugerido para o desenvolvimento contínuo da plataforma.
+
+### Fase 1: Lógica de API Principal (Back-end)
+
+- [ ] **Implementar Endpoints de Negociação:** Criar as rotas de API (`/api/trade/buy` e `/api/trade/sell`) e a lógica de negócio para:
+    - Validar as transações do usuário (verificar saldo, etc.).
+    - Atualizar o saldo (`balance`) do usuário.
+    - Registrar a transação na tabela `Trade`.
+    - Criar ou atualizar a `Position` do usuário no resultado correspondente.
+    - [Opcional] Implementar um algoritmo simples para ajustar o `price` do `Outcome` com base na demanda.
+- [ ] **Implementar Endpoints de Mercado:**
+    - Criar uma rota de API (`/api/markets`) para listar todos os mercados disponíveis.
+    - Criar uma rota de API (`/api/markets/[id]`) para visualizar os detalhes de um mercado específico.
+
+### Fase 2: Interface de Usuário (Front-end)
+
+- [ ] **Página de Listagem de Mercados:** Desenvolver a página `/markets` que consome a API para exibir todos os mercados.
+- [ ] **Página de Detalhes do Mercado:** Desenvolver a página dinâmica `/markets/[id]` que mostra os detalhes de um mercado, seus resultados e uma interface simples para negociação.
+- [ ] **Integração com API:** Conectar os componentes do front-end com os endpoints de API criados na Fase 1.
+- [ ] **Exibição de Saldo:** Mostrar o saldo do usuário logado no cabeçalho da aplicação.
+
+### Fase 3: Resolução de Mercado e Dashboard
+
+- [ ] **Lógica de Resolução:** Implementar a funcionalidade para resolver um mercado, definindo um `resolvedOutcome`. Isso pode ser uma função de administrador ou um processo automatizado.
+- [ ] **Distribuição de Ganhos:** Criar o script para pagar os usuários que possuem ações do resultado vencedor.
+- [ ] **Dashboard do Usuário:** Desenvolver uma página `/dashboard` onde os usuários podem ver suas posições atuais, histórico de transações e saldo.
+
+### Fase 4: Polimento e Funcionalidades Avançadas
+
+- [ ] **Melhorar a Experiência do Usuário (UX/UI):** Refinar o design, adicionar feedback visual para as ações do usuário e garantir a responsividade.
+- [ ] **Gráficos de Preço:** Integrar uma biblioteca de gráficos para visualizar o histórico de preços de cada resultado.
+- [ ] **Testes:** Escrever testes unitários e de integração para garantir a robustez da aplicação.
+- [ ] **Notificações:** Implementar um sistema para notificar os usuários sobre eventos importantes (ex: mercado resolvido).
