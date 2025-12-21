@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
-// This is a simplified implementation. A real-world scenario would require a more
-// robust price calculation mechanism (e.g., a logarithmic market scoring rule).
+const PRICE_SENSITIVITY_FACTOR = 0.005; // Determines how much the price changes per share traded
 
 export async function POST(request: Request) {
   const session = await getServerSession();
@@ -66,33 +65,29 @@ export async function POST(request: Request) {
         },
       });
 
-      // 5. Update or create the user's position
-      const position = await tx.position.findUnique({
+      // 5. Update or create the user's position using upsert
+      await tx.position.upsert({
         where: {
           userId_outcomeId: {
             userId: user.id,
             outcomeId: outcomeId,
           },
         },
+        update: { shares: { increment: shares } },
+        create: {
+          userId: user.id,
+          outcomeId: outcomeId,
+          shares: shares,
+        },
       });
 
-      if (position) {
-        await tx.position.update({
-          where: { id: position.id },
-          data: { shares: { increment: shares } },
-        });
-      } else {
-        await tx.position.create({
-          data: {
-            userId: user.id,
-            outcomeId: outcomeId,
-            shares: shares,
-          },
-        });
-      }
+      // 6. Update the outcome's price
+      const newPrice = Math.min(0.99, outcome.price + (shares * PRICE_SENSITIVITY_FACTOR));
+      await tx.outcome.update({
+        where: { id: outcomeId },
+        data: { price: newPrice, shares: { increment: shares } },
+      });
 
-      // This is where a price update mechanism would go.
-      // For now, the price remains fixed.
 
       return { updatedUser };
     });
@@ -104,7 +99,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Error processing purchase:', error);
-    // Check for specific Prisma transaction errors if needed
     return NextResponse.json(
       { error: error.message || 'An error occurred during the purchase.' },
       { status: 500 }

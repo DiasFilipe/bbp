@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
+const PRICE_SENSITIVITY_FACTOR = 0.005; // Determines how much the price changes per share traded
+
 export async function POST(request: Request) {
   const session = await getServerSession();
   if (!session?.user?.email) {
@@ -79,8 +81,12 @@ export async function POST(request: Request) {
         data: { shares: { decrement: shares } },
       });
 
-      // This is where a price update mechanism would go.
-      // For now, the price remains fixed.
+      // 6. Update the outcome's price
+      const newPrice = Math.max(0.01, position.outcome.price - (shares * PRICE_SENSITIVITY_FACTOR));
+      await tx.outcome.update({
+        where: { id: outcomeId },
+        data: { price: newPrice, shares: { decrement: shares } },
+      });
 
       return { updatedUser };
     });

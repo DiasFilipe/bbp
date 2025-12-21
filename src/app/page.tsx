@@ -1,19 +1,14 @@
 import MarketCard from '@/components/market-card';
 import type { Market, Outcome } from '@prisma/client';
+import { GET } from './api/markets/route';
 
 type MarketWithOutcomes = Market & {
   outcomes: Outcome[];
 };
 
 async function getMarkets(): Promise<MarketWithOutcomes[]> {
-  // In a real app, you'd fetch from your absolute URL
-  // For server components, you can fetch directly from the API route
-  // For simplicity here, we'll assume the app is running on localhost:3000
-  // A better approach would be to use an environment variable for the base URL
   try {
-    const res = await fetch('http://localhost:3000/api/markets', {
-      cache: 'no-store', // Disable cache for development to see changes
-    });
+    const res = await GET();
 
     if (!res.ok) {
       throw new Error('Failed to fetch markets');
