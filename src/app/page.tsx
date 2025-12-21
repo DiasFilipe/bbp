@@ -1,23 +1,25 @@
 import MarketCard from '@/components/market-card';
 import type { Market, Outcome } from '@prisma/client';
-import { GET } from './api/markets/route';
+import { prisma } from '@/lib/prisma'; // Import prisma directly
 
 type MarketWithOutcomes = Market & {
   outcomes: Outcome[];
 };
 
+// This function now fetches data directly from the database
 async function getMarkets(): Promise<MarketWithOutcomes[]> {
   try {
-    const res = await GET();
-
-    if (!res.ok) {
-      throw new Error('Failed to fetch markets');
-    }
-
-    const markets = await res.json();
+    const markets = await prisma.market.findMany({
+      include: {
+        outcomes: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
     return markets;
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching markets directly:', error);
     return []; // Return an empty array on error
   }
 }

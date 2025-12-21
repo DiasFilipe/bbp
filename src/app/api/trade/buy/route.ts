@@ -18,21 +18,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid data provided.' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
-    }
-
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Fetch the outcome and its market
+      // 1. Get user and outcome details within the transaction
+      const user = await tx.user.findUnique({
+        where: { email: session.user.email! },
+      });
+      
       const outcome = await tx.outcome.findUnique({
         where: { id: outcomeId },
         include: { market: true },
       });
 
+      if (!user) {
+        // This should theoretically not happen if session exists
+        throw new Error('User not found.');
+      }
       if (!outcome) {
         throw new Error('Outcome not found.');
       }
@@ -40,9 +40,8 @@ export async function POST(request: Request) {
         throw new Error('Market is already resolved.');
       }
 
+      // 2. Check for sufficient funds (now atomically)
       const cost = shares * outcome.price;
-
-      // 2. Check if the user has enough balance
       if (user.balance < cost) {
         throw new Error('Insufficient funds.');
       }
