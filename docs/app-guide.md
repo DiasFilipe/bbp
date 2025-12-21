@@ -137,48 +137,37 @@ A seguir, a stack tecnológica principal utilizada neste projeto:
 *   **Google Generative AI:** Integração com modelos de inteligência artificial generativa do Google.
 *   **ioredis:** Cliente Redis de alto desempenho para caching e outras funcionalidades.
 
-## Próximos Passos
+## Melhorias Importantes e Próximos Passos Sugeridos
 
-1.  **Atualizar o `schema.prisma`:** Copiar e colar esses modelos no arquivo `prisma/schema.prisma`.
-2.  **Executar a Migração do Prisma:** Rodar `npx prisma migrate dev --name init` para criar as tabelas no banco de dados.
-3.  **Desenvolver a Lógica de Negociação:** Implementar as funções para comprar e vender ações, atualizando os preços e as posições dos usuários.
+Com base na análise do código atual e nas melhores práticas, aqui estão algumas áreas-chave para melhoria e desenvolvimento futuro:
 
-## Instruções do Ambiente de Desenvolvimento
+### 1. Segurança e Autorização (Prioridade Alta)
 
-**Nota para o Gemini CLI:** Não é necessário executar `npm run dev`. O usuário está acompanhando o ambiente de desenvolvimento.
+*   **Corrigir Autorização na Resolução de Mercados:** Atualmente, qualquer usuário autenticado pode resolver qualquer mercado. É crucial modificar o modelo `Market` para incluir um `creatorId` (ID do usuário que criou o mercado) e, na rota de resolução, verificar se o usuário logado é o criador do mercado ou um administrador.
+*   **Implementar Papéis de Usuário (Admin):** Introduzir um sistema de controle de acesso baseado em papéis (RBAC). Adicionar um campo como `isAdmin: Boolean` ao modelo `User` permitiria restringir funcionalidades sensíveis a administradores.
 
-## Roadmap de Desenvolvimento
+### 2. Lógica Econômica e Funcionalidades Core (Prioridade Média-Alta)
 
-A seguir, um roadmap sugerido para o desenvolvimento contínuo da plataforma.
+*   **Melhorar a Lógica de Preços:** A mecânica atual de ajuste de preços é muito simplificada. Para um mercado de previsão mais realista e eficiente, considere implementar um **criador de mercado automatizado (AMM)** baseado em regras de pontuação (como LMSR - Logarithmic Market Scoring Rule). Isso garante que os preços reflitam probabilidades de forma mais precisa e que a plataforma mantenha a neutralidade financeira.
+*   **Adicionar Taxas de Transação:** Introduzir uma pequena taxa sobre as operações de compra e venda. Isso pode gerar receita para a plataforma ou cobrir custos operacionais.
+*   **Refinar o Balanço Financeiro:** Em sistemas de mercado de previsão, é comum que as ações de resultados perdedores se tornem sem valor. Adicionar uma etapa na resolução do mercado para "limpar" ou desativar essas posições para os usuários, após o pagamento dos vencedores.
 
-### Fase 1: Lógica de API Principal (Back-end)
+### 3. Experiência do Usuário (UX) e Features (Prioridade Média)
 
-- [ ] **Implementar Endpoints de Negociação:** Criar as rotas de API (`/api/trade/buy` e `/api/trade/sell`) e a lógica de negócio para:
-    - Validar as transações do usuário (verificar saldo, etc.).
-    - Atualizar o saldo (`balance`) do usuário.
-    - Registrar a transação na tabela `Trade`.
-    - Criar ou atualizar a `Position` do usuário no resultado correspondente.
-    - [Opcional] Implementar um algoritmo simples para ajustar o `price` do `Outcome` com base na demanda.
-- [ ] **Implementar Endpoints de Mercado:**
-    - Criar uma rota de API (`/api/markets`) para listar todos os mercados disponíveis.
-    - Criar uma rota de API (`/api/markets/[id]`) para visualizar os detalhes de um mercado específico.
+*   **Dashboard do Usuário Completo:** Criar uma página de painel para o usuário onde ele possa visualizar de forma clara:
+    *   Seu saldo atual.
+    *   Todas as suas posições abertas em diferentes mercados.
+    *   Um histórico detalhado de suas transações (compras, vendas, ganhos de resolução).
+*   **Melhorar a Descoberta de Mercados:** Implementar funcionalidades avançadas na página de listagem de mercados, como:
+    *   Funcionalidade de busca por título ou descrição.
+    *   Filtros por categoria (Fofoca, Futebol, Política, etc.).
+    *   Opções de ordenação (por data de criação, data de resolução, volume de negociação).
+*   **Sistema de Notificações:** Desenvolver um sistema de notificações para alertar os usuários sobre eventos importantes, como:
+    *   Mercados em que participaram foram resolvidos.
+    *   Resultados de transações importantes.
 
-### Fase 2: Interface de Usuário (Front-end)
+### 4. Melhorias Técnicas e Refatoração (Prioridade Média-Baixa)
 
-- [ ] **Página de Listagem de Mercados:** Desenvolver a página `/markets` que consome a API para exibir todos os mercados.
-- [ ] **Página de Detalhes do Mercado:** Desenvolver a página dinâmica `/markets/[id]` que mostra os detalhes de um mercado, seus resultados e uma interface simples para negociação.
-- [ ] **Integração com API:** Conectar os componentes do front-end com os endpoints de API criados na Fase 1.
-- [ ] **Exibição de Saldo:** Mostrar o saldo do usuário logado no cabeçalho da aplicação.
-
-### Fase 3: Resolução de Mercado e Dashboard
-
-- [ ] **Lógica de Resolução:** Implementar a funcionalidade para resolver um mercado, definindo um `resolvedOutcome`. Isso pode ser uma função de administrador ou um processo automatizado.
-- [ ] **Distribuição de Ganhos:** Criar o script para pagar os usuários que possuem ações do resultado vencedor.
-- [ ] **Dashboard do Usuário:** Desenvolver uma página `/dashboard` onde os usuários podem ver suas posições atuais, histórico de transações e saldo.
-
-### Fase 4: Polimento e Funcionalidades Avançadas
-
-- [ ] **Melhorar a Experiência do Usuário (UX/UI):** Refinar o design, adicionar feedback visual para as ações do usuário e garantir a responsividade.
-- [ ] **Gráficos de Preço:** Integrar uma biblioteca de gráficos para visualizar o histórico de preços de cada resultado.
-- [ ] **Testes:** Escrever testes unitários e de integração para garantir a robustez da aplicação.
-- [ ] **Notificações:** Implementar um sistema para notificar os usuários sobre eventos importantes (ex: mercado resolvido).
+*   **Consolidar Definições de Tipos:** Centralizar as interfaces de tipos (para `Market`, `Outcome`, `User`, etc.) em um arquivo ou módulo, usando os tipos gerados pelo Prisma, para evitar duplicação e garantir a consistência em todo o frontend e backend.
+*   **Cliente de API Centralizado:** Refatorar as chamadas de API (`fetch`) no frontend para usar um cliente de API centralizado ou ganchos (hooks) personalizados. Isso melhora a manutenibilidade, a capacidade de reutilização do código e pode adicionar funcionalidades como cache ou tratamento global de erros.
+*   **Validação de Variáveis de Ambiente:** Utilizar uma biblioteca de validação (ex: Zod) para garantir que todas as variáveis de ambiente (`DATABASE_URL`, `NEXTAUTH_SECRET`, etc.) estejam presentes e formatadas corretamente na inicialização da aplicação.
