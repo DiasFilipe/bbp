@@ -21,7 +21,7 @@ export async function POST(
       return NextResponse.json({ error: 'Winning outcome ID is required.' }, { status: 400 });
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Fetch market and validate
       const market = await tx.market.findUnique({
         where: { id: marketId },
