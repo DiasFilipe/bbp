@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const marketId = params.id;
+    const { id: marketId } = await params;
 
     if (!marketId) {
       return NextResponse.json({ error: 'Market ID is required.' }, { status: 400 });
@@ -27,7 +27,8 @@ export async function GET(
 
     return NextResponse.json(market);
   } catch (error) {
-    console.error(`Error fetching market ${params.id}:`, error);
+    const { id } = await params;
+    console.error(`Error fetching market ${id}:`, error);
     return NextResponse.json(
       { error: 'An error occurred while fetching the market.' },
       { status: 500 }

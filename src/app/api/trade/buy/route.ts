@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Get user and outcome details within the transaction
       const user = await tx.user.findUnique({
-        where: { email: session.user.email! },
+        where: { email: session.user!.email! },
       });
       
       const outcome = await tx.outcome.findUnique({

@@ -11,7 +11,9 @@
       "Bash(openssl rand:*)",
       "WebSearch",
       "Bash(npm run dev:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

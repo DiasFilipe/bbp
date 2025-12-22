@@ -16,7 +16,7 @@ try {
 } catch (error) {
   if (error instanceof z.ZodError) {
     console.error('❌ Erro de validação das variáveis de ambiente:');
-    error.errors.forEach((err) => {
+    error.issues.forEach((err) => {
       console.error(`  - ${err.path.join('.')}: ${err.message}`);
     });
     console.error('\n💡 Por favor, verifique seu arquivo .env');

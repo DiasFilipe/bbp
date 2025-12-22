@@ -5,7 +5,7 @@ import { authOptions } from '../../../auth/[...nextauth]/route';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
@@ -13,7 +13,7 @@ export async function POST(
   }
 
   try {
-    const marketId = params.id;
+    const { id: marketId } = await params;
     const body = await request.json();
     const { winningOutcomeId } = body;
 
@@ -36,7 +36,7 @@ export async function POST(
       }
 
       // Authorization Check: Ensure only the creator can resolve the market.
-      if (market.creatorId !== session.user.id) {
+      if (market.creatorId !== session.user!.id) {
         throw new Error('Only the market creator can resolve this market.');
       }
 
@@ -80,7 +80,8 @@ export async function POST(
     return NextResponse.json(result.resolvedMarket, { status: 200 });
 
   } catch (error: any) {
-    console.error(`Error resolving market ${params.id}:`, error);
+    const { id } = await params;
+    console.error(`Error resolving market ${id}:`, error);
     return NextResponse.json(
       { error: error.message || 'An error occurred while resolving the market.' },
       { status: 500 }

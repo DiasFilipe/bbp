@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         description,
         category,
         resolveAt,
-        creatorId: session.user.id, // Associate the market with the creator
+        creatorId: session.user!.id, // Associate the market with the creator
         outcomes: {
           create: outcomes.map((outcome: { title: string }) => ({
             title: outcome.title,
