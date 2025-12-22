@@ -8,15 +8,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  // TODO: Authorization Issue: Currently, any authenticated user can resolve a market.
-  // In a real application, you should add logic to ensure only the market creator
-  // or an admin can resolve it. This would require adding a `creatorId` field
-  // to the `Market` model in `schema.prisma` and checking it here.
-  // Example: if (market.creatorId !== session.user.id) { throw new Error('Not authorized'); }
 
   try {
     const marketId = params.id;
@@ -40,6 +34,12 @@ export async function POST(
       if (market.isResolved) {
         throw new Error('Market is already resolved.');
       }
+
+      // Authorization Check: Ensure only the creator can resolve the market.
+      if (market.creatorId !== session.user.id) {
+        throw new Error('Only the market creator can resolve this market.');
+      }
+
       const winningOutcome = market.outcomes.find(o => o.id === winningOutcomeId);
       if (!winningOutcome) {
         throw new Error('Winning outcome is not valid for this market.');

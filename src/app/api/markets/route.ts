@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         description,
         category,
         resolveAt,
+        creatorId: session.user.id, // Associate the market with the creator
         outcomes: {
           create: outcomes.map((outcome: { title: string }) => ({
             title: outcome.title,

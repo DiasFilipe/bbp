@@ -21,6 +21,7 @@ model User {
   balance   Float     @default(1000.0) // Saldo inicial para negociação
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  markets   Market[]   // Relation to markets created by user
   trades    Trade[]
   positions Position[]
 }
@@ -30,6 +31,8 @@ model Market {
   title       String
   description String
   category    String
+  creatorId   String
+  creator     User       @relation(fields: [creatorId], references: [id])
   resolveAt   DateTime   // Data em que o mercado será resolvido
   isResolved  Boolean    @default(false)
   resolvedOutcomeId String?    // ID do resultado vencedor
