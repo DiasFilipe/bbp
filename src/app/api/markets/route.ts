@@ -5,14 +5,42 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+    const category = searchParams.get('category');
+    const orderBy = searchParams.get('orderBy') || 'createdAt';
+    const order = searchParams.get('order') || 'desc';
+
+    // Build where clause
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (category && category !== 'all') {
+      where.category = category;
+    }
+
+    // Build orderBy clause
+    let orderByClause: any = {};
+    if (orderBy === 'createdAt' || orderBy === 'resolveAt') {
+      orderByClause[orderBy] = order;
+    } else {
+      orderByClause.createdAt = 'desc';
+    }
+
     const markets = await prisma.market.findMany({
+      where,
       include: {
-        outcomes: true, // Include the outcomes for each market
+        outcomes: true,
       },
-      orderBy: {
-        createdAt: 'desc', // Show newest markets first
-      },
+      orderBy: orderByClause,
     });
+
     return NextResponse.json(markets);
   } catch (error) {
     console.error('Error fetching markets:', error);

@@ -46,12 +46,11 @@ export default function Header() {
           <Link href="/markets" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
             Mercados
           </Link>
-          <Link href="/portfolio" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
-            Portfólio
-          </Link>
-          <Link href="/leaderboard" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
-            Ranking
-          </Link>
+          {status === 'authenticated' && (
+            <Link href="/dashboard" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
+              Dashboard
+            </Link>
+          )}
           <Link href="/markets/create" className="text-gray-500 hover:text-pm-dark dark:text-pm-gray dark:hover:text-white text-sm font-medium">
             Criar Mercado
           </Link>

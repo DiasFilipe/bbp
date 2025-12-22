@@ -1,0 +1,28 @@
+import { z } from 'zod';
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória'),
+  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET deve ter pelo menos 32 caracteres'),
+  NEXTAUTH_URL: z.string().url('NEXTAUTH_URL deve ser uma URL válida'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+let env: Env;
+
+try {
+  env = envSchema.parse(process.env);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    console.error('❌ Erro de validação das variáveis de ambiente:');
+    error.errors.forEach((err) => {
+      console.error(`  - ${err.path.join('.')}: ${err.message}`);
+    });
+    console.error('\n💡 Por favor, verifique seu arquivo .env');
+    process.exit(1);
+  }
+  throw error;
+}
+
+export { env };

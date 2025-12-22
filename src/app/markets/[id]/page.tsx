@@ -63,11 +63,57 @@ export default function MarketDetailPage() {
   }, [id]);
 
   const handleTrade = async (type: 'BUY' | 'SELL', outcomeId: string) => {
-    // ... (trade logic remains the same)
+    const shares = tradeShares[outcomeId];
+
+    if (!shares || shares <= 0) {
+      setTradeFeedback('Por favor, insira uma quantidade válida de ações.');
+      setTimeout(() => setTradeFeedback(null), 3000);
+      return;
+    }
+
+    setTradeFeedback(null);
+
+    try {
+      const endpoint = type === 'BUY' ? '/api/trade/buy' : '/api/trade/sell';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outcomeId, shares }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || `Falha ao ${type === 'BUY' ? 'comprar' : 'vender'}.`);
+      }
+
+      // Success feedback
+      const action = type === 'BUY' ? 'compradas' : 'vendidas';
+      setTradeFeedback(
+        `${shares} ações ${action} com sucesso! Novo saldo: R$ ${result.balance?.toFixed(2) || 'N/A'}`
+      );
+
+      // Clear the input for this outcome
+      setTradeShares(prev => ({ ...prev, [outcomeId]: 0 }));
+
+      // Refresh market data to show updated prices
+      await fetchMarket();
+
+      // Clear feedback after 5 seconds
+      setTimeout(() => setTradeFeedback(null), 5000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido.';
+      setTradeFeedback(`Erro: ${errorMessage}`);
+      setTimeout(() => setTradeFeedback(null), 5000);
+    }
   };
 
   const handleSharesChange = (outcomeId: string, value: string) => {
-    // ... (shares change logic remains the same)
+    const numValue = parseInt(value, 10);
+    setTradeShares(prev => ({
+      ...prev,
+      [outcomeId]: isNaN(numValue) ? 0 : numValue,
+    }));
   };
 
   const handleResolveMarket = async () => {
