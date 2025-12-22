@@ -1,9 +1,17 @@
 import { z } from 'zod';
 
+// Skip validation during Next.js build phase
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                     process.env.NEXT_PHASE === 'phase-export';
+
 const envSchema = z.object({
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória'),
-  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET deve ter pelo menos 32 caracteres'),
-  NEXTAUTH_URL: z.string().url('NEXTAUTH_URL deve ser uma URL válida'),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória').optional(),
+  NEXTAUTH_SECRET: isBuildTime
+    ? z.string().optional()
+    : z.string().min(32, 'NEXTAUTH_SECRET deve ter pelo menos 32 caracteres'),
+  NEXTAUTH_URL: isBuildTime
+    ? z.string().optional()
+    : z.string().url('NEXTAUTH_URL deve ser uma URL válida'),
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
 });
 
