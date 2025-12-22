@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-import { Prisma } from '@prisma/client';
 
 const PRICE_SENSITIVITY_FACTOR = 0.005; // Determines how much the price changes per share traded
 
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch the user's position and the related outcome/market
       const position = await tx.position.findUnique({
         where: {

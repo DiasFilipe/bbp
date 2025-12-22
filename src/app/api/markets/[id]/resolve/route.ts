@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/[...nextauth]/route';
-import { Prisma } from '@prisma/client';
 
 export async function POST(
   request: Request,
@@ -22,7 +21,7 @@ export async function POST(
       return NextResponse.json({ error: 'Winning outcome ID is required.' }, { status: 400 });
     }
 
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch market and validate
       const market = await tx.market.findUnique({
         where: { id: marketId },
