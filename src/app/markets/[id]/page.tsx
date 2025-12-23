@@ -21,6 +21,13 @@ interface Market {
   outcomes: Outcome[];
   isResolved: boolean;
   resolvedOutcomeId?: string | null;
+  statistics?: {
+    totalVolume: number;
+    uniqueTraders: number;
+    totalShares: number;
+    marketCap: number;
+    totalTrades: number;
+  };
 }
 
 export default function MarketDetailPage() {
@@ -204,6 +211,47 @@ export default function MarketDetailPage() {
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
           <p className="font-bold">Market Resolved</p>
           <p>This market has been resolved and is no longer available for trading.</p>
+        </div>
+      )}
+
+      {/* Market Statistics */}
+      {market.statistics && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-lg p-6 mb-6 border border-blue-100 dark:border-gray-700">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <span>📊</span> Estatísticas do Mercado
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Volume Total</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                R$ {market.statistics.totalVolume.toFixed(2)}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Traders</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {market.statistics.uniqueTraders}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Negociações</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {market.statistics.totalTrades}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Ações em Circulação</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {market.statistics.totalShares.toFixed(0)}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Market Cap</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                R$ {market.statistics.marketCap.toFixed(2)}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

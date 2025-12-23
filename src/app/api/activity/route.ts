@@ -25,14 +25,23 @@ export async function GET(request: Request) {
             category: true,
           },
         },
-        outcome: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
       },
     });
+
+    // Fetch outcomes for each trade
+    const outcomeIds = recentTrades.map(trade => trade.outcomeId);
+    const outcomes = await prisma.outcome.findMany({
+      where: {
+        id: { in: outcomeIds },
+      },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    // Create a map for quick lookup
+    const outcomeMap = new Map(outcomes.map(o => [o.id, o]));
 
     // Format the response
     const formattedTrades = recentTrades.map((trade) => ({
@@ -50,7 +59,7 @@ export async function GET(request: Request) {
         category: trade.market.category,
       },
       outcome: {
-        title: trade.outcome.title,
+        title: outcomeMap.get(trade.outcomeId)?.title || 'Desconhecido',
       },
     }));
 
