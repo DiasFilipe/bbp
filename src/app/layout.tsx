@@ -4,7 +4,8 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import Footer from "@/components/footer";
-import AuthProvider from "@/components/auth-provider"; // Import the new AuthProvider
+import AuthProvider from "@/components/auth-provider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,10 +38,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider> {/* Use the new AuthProvider */}
+          <AuthProvider>
             <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
+            <Toaster position="top-right" richColors />
           </AuthProvider>
         </ThemeProvider>
       </body>

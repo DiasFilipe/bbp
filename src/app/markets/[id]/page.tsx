@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 // Types
 interface Outcome {
@@ -30,12 +31,10 @@ export default function MarketDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tradeShares, setTradeShares] = useState<{ [key: string]: number }>({});
-  const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
 
   // State for resolution
   const [selectedWinner, setSelectedWinner] = useState<string>('');
   const [isResolving, setIsResolving] = useState<boolean>(false);
-  const [resolveError, setResolveError] = useState<string | null>(null);
 
   const fetchMarket = async () => {
     if (id) {
@@ -66,12 +65,9 @@ export default function MarketDetailPage() {
     const shares = tradeShares[outcomeId];
 
     if (!shares || shares <= 0) {
-      setTradeFeedback('Por favor, insira uma quantidade válida de ações.');
-      setTimeout(() => setTradeFeedback(null), 3000);
+      toast.error('Por favor, insira uma quantidade válida de ações.');
       return;
     }
-
-    setTradeFeedback(null);
 
     try {
       const endpoint = type === 'BUY' ? '/api/trade/buy' : '/api/trade/sell';
@@ -89,7 +85,7 @@ export default function MarketDetailPage() {
 
       // Success feedback
       const action = type === 'BUY' ? 'compradas' : 'vendidas';
-      setTradeFeedback(
+      toast.success(
         `${shares} ações ${action} com sucesso! Novo saldo: R$ ${result.balance?.toFixed(2) || 'N/A'}`
       );
 
@@ -98,13 +94,9 @@ export default function MarketDetailPage() {
 
       // Refresh market data to show updated prices
       await fetchMarket();
-
-      // Clear feedback after 5 seconds
-      setTimeout(() => setTradeFeedback(null), 5000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido.';
-      setTradeFeedback(`Erro: ${errorMessage}`);
-      setTimeout(() => setTradeFeedback(null), 5000);
+      toast.error(`Erro: ${errorMessage}`);
     }
   };
 
@@ -118,11 +110,10 @@ export default function MarketDetailPage() {
 
   const handleResolveMarket = async () => {
     if (!selectedWinner) {
-      setResolveError('Please select a winning outcome.');
+      toast.error('Por favor, selecione um resultado vencedor.');
       return;
     }
     setIsResolving(true);
-    setResolveError(null);
     try {
       const response = await fetch(`/api/markets/${id}/resolve`, {
         method: 'POST',
@@ -131,12 +122,13 @@ export default function MarketDetailPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to resolve market.');
+        throw new Error(result.error || 'Falha ao resolver mercado.');
       }
+      toast.success('Mercado resolvido com sucesso!');
       // Refresh market data to show resolved state
-      await fetchMarket(); 
+      await fetchMarket();
     } catch (err) {
-      setResolveError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      toast.error(err instanceof Error ? err.message : 'Erro desconhecido.');
     } finally {
       setIsResolving(false);
     }
@@ -202,12 +194,6 @@ export default function MarketDetailPage() {
         ))}
       </div>
 
-      {tradeFeedback && (
-        <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-center">
-          <p>{tradeFeedback}</p>
-        </div>
-      )}
-
       {/* Resolution Section */}
       {!market.isResolved && (
         <div className="mt-8 p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner">
@@ -227,10 +213,9 @@ export default function MarketDetailPage() {
               disabled={isResolving}
               className="bg-yellow-500 text-white font-bold py-2 px-4 rounded hover:bg-yellow-600 disabled:bg-opacity-50 transition"
             >
-              {isResolving ? 'Resolving...' : 'Resolve Market'}
+              {isResolving ? 'Resolvendo...' : 'Resolver Mercado'}
             </button>
           </div>
-          {resolveError && <p className="text-red-500 mt-2">{resolveError}</p>}
         </div>
       )}
     </div>
