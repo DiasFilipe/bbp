@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import MarketCard from '@/components/market-card';
+import ActivityFeed from '@/components/activity-feed';
 
 interface Outcome {
   id: string;
@@ -106,29 +107,39 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Markets Grid */}
-      {loading ? (
-        <div className="text-center py-10">
-          <p className="text-gray-500 dark:text-gray-400">Carregando mercados...</p>
+      {/* Main Content with Activity Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Markets Section - Takes 2/3 on large screens */}
+        <div className="lg:col-span-2">
+          {loading ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500 dark:text-gray-400">Carregando mercados...</p>
+            </div>
+          ) : markets.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500 dark:text-gray-400">
+                Nenhum mercado encontrado com os filtros selecionados.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {markets.map((market) => (
+                <MarketCard
+                  key={market.id}
+                  title={market.title}
+                  outcomes={market.outcomes}
+                  category={market.category}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : markets.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-gray-500 dark:text-gray-400">
-            Nenhum mercado encontrado com os filtros selecionados.
-          </p>
+
+        {/* Activity Feed - Takes 1/3 on large screens */}
+        <div className="lg:col-span-1">
+          <ActivityFeed />
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {markets.map((market) => (
-            <MarketCard
-              key={market.id}
-              title={market.title}
-              outcomes={market.outcomes}
-              category={market.category}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
