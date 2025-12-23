@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function POST() {
-  // Proteção: apenas administradores podem executar seed
-  const session = await getServerSession(authOptions);
-
-  // IMPORTANTE: Remova esta rota após executar o seed!
-  // Por segurança, você pode adicionar uma chave secreta aqui
-
   try {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error('DATABASE_URL not found');
-    }
-
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaPg(pool);
-    const prisma = new PrismaClient({ adapter });
 
     console.log('🌱 Iniciando seed do banco de dados...\n');
 
@@ -237,8 +219,6 @@ export async function POST() {
         },
       });
     }
-
-    await prisma.$disconnect();
 
     return NextResponse.json({
       success: true,
