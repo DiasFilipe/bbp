@@ -39,12 +39,14 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.id = user.id;
         token.balance = (user as any).balance; // Cast to any to access balance
+        token.isAdmin = (user as any).isAdmin || false; // Include isAdmin flag
       } else {
         // On subsequent requests, token exists, fetch updated user data
         if (token.id) {
           const dbUser = await prisma.user.findUnique({ where: { id: token.id } });
           if (dbUser) {
             token.balance = dbUser.balance;
+            token.isAdmin = dbUser.isAdmin;
           }
         }
       }
@@ -54,6 +56,7 @@ export const authOptions: AuthOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.balance = token.balance;
+        session.user.isAdmin = token.isAdmin || false; // Include isAdmin in session
       }
       return session;
     },

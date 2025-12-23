@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-
-const PRICE_SENSITIVITY_FACTOR = 0.005; // Determines how much the price changes per share traded
+import { TRANSACTION_FEE_RATE, PRICE_SENSITIVITY_FACTOR, MIN_PRICE } from '@/lib/constants';
 
 export async function POST(request: Request) {
   const session = await getServerSession();
@@ -55,15 +54,18 @@ export async function POST(request: Request) {
         throw new Error('Market is already resolved.');
       }
 
+      // 3. Calculate proceeds with transaction fee
       const proceeds = shares * position.outcome.price;
+      const fee = proceeds * TRANSACTION_FEE_RATE;
+      const netProceeds = proceeds - fee;
 
-      // 3. Increment user's balance
+      // 4. Increment user's balance (proceeds - fee)
       const updatedUser = await tx.user.update({
         where: { id: user.id },
-        data: { balance: { increment: proceeds } },
+        data: { balance: { increment: netProceeds } },
       });
 
-      // 4. Create the trade record
+      // 5. Create the trade record
       await tx.trade.create({
         data: {
           userId: user.id,
@@ -75,25 +77,27 @@ export async function POST(request: Request) {
         },
       });
 
-      // 5. Decrement the user's position
+      // 6. Decrement the user's position
       await tx.position.update({
         where: { id: position.id },
         data: { shares: { decrement: shares } },
       });
 
-      // 6. Update the outcome's price
-      const newPrice = Math.max(0.01, position.outcome.price - (shares * PRICE_SENSITIVITY_FACTOR));
+      // 7. Update the outcome's price
+      const newPrice = Math.max(MIN_PRICE, position.outcome.price - (shares * PRICE_SENSITIVITY_FACTOR));
       await tx.outcome.update({
         where: { id: outcomeId },
         data: { price: newPrice, shares: { decrement: shares } },
       });
 
-      return { updatedUser };
+      return { updatedUser, fee, netProceeds };
     });
 
     return NextResponse.json({
       message: 'Sale successful!',
       balance: result.updatedUser.balance,
+      fee: result.fee,
+      netProceeds: result.netProceeds,
     }, { status: 200 });
 
   } catch (error: any) {

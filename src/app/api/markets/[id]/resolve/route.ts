@@ -35,9 +35,12 @@ export async function POST(
         throw new Error('Market is already resolved.');
       }
 
-      // Authorization Check: Ensure only the creator can resolve the market.
-      if (market.creatorId !== session.user!.id) {
-        throw new Error('Only the market creator can resolve this market.');
+      // Authorization Check: Ensure only the creator or an admin can resolve the market.
+      const isCreator = market.creatorId === session.user!.id;
+      const isAdmin = session.user!.isAdmin || false;
+
+      if (!isCreator && !isAdmin) {
+        throw new Error('Only the market creator or an admin can resolve this market.');
       }
 
       const winningOutcome = market.outcomes.find(o => o.id === winningOutcomeId);

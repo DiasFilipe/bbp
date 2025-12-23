@@ -19,6 +19,7 @@ model User {
   name      String?
   password  String    // Em um cenário real, isso seria um hash
   balance   Float     @default(1000.0) // Saldo inicial para negociação
+  isAdmin   Boolean   @default(false) // Sistema de roles - identifica administradores
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   markets   Market[]   // Relation to markets created by user

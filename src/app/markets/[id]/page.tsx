@@ -49,6 +49,8 @@ export default function MarketDetailPage() {
     shares: number;
     price: number;
     total: number;
+    fee: number;
+    finalAmount: number;
   } | null>(null);
 
   // State for resolution
@@ -92,17 +94,23 @@ export default function MarketDetailPage() {
     const outcome = market?.outcomes.find(o => o.id === outcomeId);
     if (!outcome) return;
 
-    const total = shares * outcome.price;
+    const TRANSACTION_FEE_RATE = 0.02; // 2% fee
+    const subtotal = shares * outcome.price;
+    const fee = subtotal * TRANSACTION_FEE_RATE;
+    const finalAmount = type === 'BUY' ? subtotal + fee : subtotal - fee;
+
     const CONFIRMATION_THRESHOLD = 50; // Confirm trades above R$ 50
 
     // Show confirmation modal for large trades
-    if (total >= CONFIRMATION_THRESHOLD) {
+    if (subtotal >= CONFIRMATION_THRESHOLD) {
       setPendingTrade({
         type,
         outcomeId,
         shares,
         price: outcome.price,
-        total,
+        total: subtotal,
+        fee,
+        finalAmount,
       });
       setShowConfirmModal(true);
       return;
@@ -330,7 +338,7 @@ export default function MarketDetailPage() {
           pendingTrade
             ? `Você está prestes a ${
                 pendingTrade.type === 'BUY' ? 'comprar' : 'vender'
-              } ${pendingTrade.shares} ações por R$ ${pendingTrade.total.toFixed(2)}. Deseja continuar?`
+              } ${pendingTrade.shares} ações.\n\nSubtotal: R$ ${pendingTrade.total.toFixed(2)}\nTaxa (2%): R$ ${pendingTrade.fee.toFixed(2)}\n${pendingTrade.type === 'BUY' ? 'Total a pagar' : 'Total a receber'}: R$ ${pendingTrade.finalAmount.toFixed(2)}\n\nDeseja continuar?`
             : ''
         }
         confirmText="Confirmar"
