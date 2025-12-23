@@ -13,7 +13,10 @@
       "Bash(npm run dev:*)",
       "Bash(pkill:*)",
       "Bash(npm run build:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ]
   }
 }
