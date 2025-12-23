@@ -16,7 +16,8 @@
       "Bash(npm install:*)",
       "Bash(npx ts-node:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(tail:*)"
     ]
   }
 }

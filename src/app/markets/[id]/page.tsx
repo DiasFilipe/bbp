@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import ConfirmModal from '@/components/confirm-modal';
 
 // Types
 interface Outcome {
@@ -32,6 +33,16 @@ export default function MarketDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [tradeShares, setTradeShares] = useState<{ [key: string]: number }>({});
   const [tradingOutcome, setTradingOutcome] = useState<string | null>(null);
+
+  // State for confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingTrade, setPendingTrade] = useState<{
+    type: 'BUY' | 'SELL';
+    outcomeId: string;
+    shares: number;
+    price: number;
+    total: number;
+  } | null>(null);
 
   // State for resolution
   const [selectedWinner, setSelectedWinner] = useState<string>('');
@@ -70,6 +81,31 @@ export default function MarketDetailPage() {
       return;
     }
 
+    // Find the outcome to get its price
+    const outcome = market?.outcomes.find(o => o.id === outcomeId);
+    if (!outcome) return;
+
+    const total = shares * outcome.price;
+    const CONFIRMATION_THRESHOLD = 50; // Confirm trades above R$ 50
+
+    // Show confirmation modal for large trades
+    if (total >= CONFIRMATION_THRESHOLD) {
+      setPendingTrade({
+        type,
+        outcomeId,
+        shares,
+        price: outcome.price,
+        total,
+      });
+      setShowConfirmModal(true);
+      return;
+    }
+
+    // Execute small trades directly
+    await executeTrade(type, outcomeId, shares);
+  };
+
+  const executeTrade = async (type: 'BUY' | 'SELL', outcomeId: string, shares: number) => {
     setTradingOutcome(`${type}-${outcomeId}`);
     try {
       const endpoint = type === 'BUY' ? '/api/trade/buy' : '/api/trade/sell';
@@ -102,6 +138,14 @@ export default function MarketDetailPage() {
     } finally {
       setTradingOutcome(null);
     }
+  };
+
+  const handleConfirmTrade = async () => {
+    if (!pendingTrade) return;
+
+    await executeTrade(pendingTrade.type, pendingTrade.outcomeId, pendingTrade.shares);
+    setShowConfirmModal(false);
+    setPendingTrade(null);
   };
 
   const handleSharesChange = (outcomeId: string, value: string) => {
@@ -224,6 +268,28 @@ export default function MarketDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setPendingTrade(null);
+        }}
+        onConfirm={handleConfirmTrade}
+        title="Confirmar Operação"
+        message={
+          pendingTrade
+            ? `Você está prestes a ${
+                pendingTrade.type === 'BUY' ? 'comprar' : 'vender'
+              } ${pendingTrade.shares} ações por R$ ${pendingTrade.total.toFixed(2)}. Deseja continuar?`
+            : ''
+        }
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        type={pendingTrade?.type === 'BUY' ? 'info' : 'warning'}
+        isLoading={tradingOutcome !== null}
+      />
     </div>
   );
 }
