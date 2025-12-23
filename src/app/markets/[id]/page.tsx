@@ -31,6 +31,7 @@ export default function MarketDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tradeShares, setTradeShares] = useState<{ [key: string]: number }>({});
+  const [tradingOutcome, setTradingOutcome] = useState<string | null>(null);
 
   // State for resolution
   const [selectedWinner, setSelectedWinner] = useState<string>('');
@@ -69,6 +70,7 @@ export default function MarketDetailPage() {
       return;
     }
 
+    setTradingOutcome(`${type}-${outcomeId}`);
     try {
       const endpoint = type === 'BUY' ? '/api/trade/buy' : '/api/trade/sell';
       const response = await fetch(endpoint, {
@@ -97,6 +99,8 @@ export default function MarketDetailPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido.';
       toast.error(`Erro: ${errorMessage}`);
+    } finally {
+      setTradingOutcome(null);
     }
   };
 
@@ -178,15 +182,17 @@ export default function MarketDetailPage() {
                 />
                 <button
                   onClick={() => handleTrade('BUY', outcome.id)}
-                  className="bg-pm-green text-white font-bold py-2 px-4 rounded hover:bg-green-600 transition"
+                  disabled={tradingOutcome !== null}
+                  className="bg-pm-green text-white font-bold py-2 px-4 rounded hover:bg-green-600 disabled:bg-opacity-50 disabled:cursor-not-allowed transition"
                 >
-                  Buy
+                  {tradingOutcome === `BUY-${outcome.id}` ? 'Comprando...' : 'Comprar'}
                 </button>
                 <button
                   onClick={() => handleTrade('SELL', outcome.id)}
-                  className="bg-pm-red text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition"
+                  disabled={tradingOutcome !== null}
+                  className="bg-pm-red text-white font-bold py-2 px-4 rounded hover:bg-red-600 disabled:bg-opacity-50 disabled:cursor-not-allowed transition"
                 >
-                  Sell
+                  {tradingOutcome === `SELL-${outcome.id}` ? 'Vendendo...' : 'Vender'}
                 </button>
               </div>
             )}
