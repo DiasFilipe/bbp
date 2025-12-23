@@ -18,7 +18,7 @@ const adapter = new PrismaPg(pool);
 export const prisma =
   global.prisma ||
   new PrismaClient({
-    log: ['query'],
+    log: process.env.NODE_ENV === 'production' ? [] : ['query'],
     adapter: adapter,
   });
 
