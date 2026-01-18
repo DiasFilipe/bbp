@@ -2,10 +2,10 @@ import 'dotenv/config';
 import type { PrismaConfig } from 'prisma';
 
 export default {
-  schema: "prisma/schema.prisma",
+  schema: "schema.prisma",
   migrations: {
-    path: "prisma/migrations",
-    seed: "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    path: "migrations",
+    seed: "ts-node --compiler-options {\"module\":\"CommonJS\"} seed.ts"
   },
   datasource: {
     url: process.env.DATABASE_URL!
