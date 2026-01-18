@@ -10,6 +10,8 @@ import {
   LMSR_ENABLED,
   DEFAULT_LIQUIDITY_PARAMETER,
   PRICE_SUM_TOLERANCE,
+  RATE_LIMIT_MAX_SENSITIVE,
+  RATE_LIMIT_WINDOW_MS,
 } from '@/lib/constants';
 import { normalizePricesWithBounds, validatePriceSum, getPriceDeviation } from '@/lib/pricing/normalize';
 import { calculateBuyCost, getUpdatedPrices } from '@/lib/pricing/lmsr';
