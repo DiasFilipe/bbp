@@ -2,9 +2,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
+import { RATE_LIMIT_MAX_SENSITIVE, RATE_LIMIT_WINDOW_MS } from '@/lib/constants';
 
 export async function POST(request: Request) {
   try {
+    const rate = checkRateLimit(
+      getRateLimitKey(request, 'auth-signup'),
+      RATE_LIMIT_MAX_SENSITIVE,
+      RATE_LIMIT_WINDOW_MS
+    );
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const body = await request.json();
     const { name, email, password } = body;
 

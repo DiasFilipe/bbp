@@ -18,3 +18,8 @@ export const LMSR_ENABLED = false; // Feature flag para ativar LMSR (Fase 2)
 
 // Price validation
 export const PRICE_SUM_TOLERANCE = 0.001; // Tolerância para validação de soma de preços (0.1%)
+
+// Rate limiting
+export const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minuto
+export const RATE_LIMIT_MAX_PUBLIC = 60; // requisições por minuto (endpoints públicos)
+export const RATE_LIMIT_MAX_SENSITIVE = 20; // requisições por minuto (trade/auth/resolve)

@@ -2,9 +2,26 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
+import { RATE_LIMIT_MAX_PUBLIC, RATE_LIMIT_MAX_SENSITIVE, RATE_LIMIT_WINDOW_MS } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
+    const rate = checkRateLimit(
+      getRateLimitKey(request, 'markets'),
+      RATE_LIMIT_MAX_PUBLIC,
+      RATE_LIMIT_WINDOW_MS
+    );
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
     const category = searchParams.get('category');
@@ -52,6 +69,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rate = checkRateLimit(
+    getRateLimitKey(request, 'markets-create'),
+    RATE_LIMIT_MAX_SENSITIVE,
+    RATE_LIMIT_WINDOW_MS
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+      }
+    );
+  }
+
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {

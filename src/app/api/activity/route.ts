@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
+import { RATE_LIMIT_MAX_PUBLIC, RATE_LIMIT_WINDOW_MS } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
+    const rate = checkRateLimit(
+      getRateLimitKey(request, 'activity'),
+      RATE_LIMIT_MAX_PUBLIC,
+      RATE_LIMIT_WINDOW_MS
+    );
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const limitParam = parseInt(searchParams.get('limit') || '10', 10);
     const limit = Number.isFinite(limitParam)

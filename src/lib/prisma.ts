@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { env } from './env'; // Validate environment variables
+import { env, requireEnv } from './env'; // Validate environment variables
 
 declare global {
   // allow global `var` declarations
@@ -10,7 +10,7 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-const connectionString = env.DATABASE_URL;
+const connectionString = env.DATABASE_URL ?? requireEnv('DATABASE_URL');
 
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);

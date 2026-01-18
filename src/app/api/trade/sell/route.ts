@@ -13,6 +13,7 @@ import {
 } from '@/lib/constants';
 import { normalizePricesWithBounds, validatePriceSum, getPriceDeviation } from '@/lib/pricing/normalize';
 import { calculateSellProceeds, getUpdatedPrices } from '@/lib/pricing/lmsr';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
 
 class ApiError extends Error {
   status: number;
@@ -24,6 +25,21 @@ class ApiError extends Error {
 }
 
 export async function POST(request: Request) {
+  const rate = checkRateLimit(
+    getRateLimitKey(request, 'trade-sell'),
+    RATE_LIMIT_MAX_SENSITIVE,
+    RATE_LIMIT_WINDOW_MS
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+      }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

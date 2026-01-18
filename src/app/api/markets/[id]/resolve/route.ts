@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/[...nextauth]/route';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
+import { RATE_LIMIT_MAX_SENSITIVE, RATE_LIMIT_WINDOW_MS } from '@/lib/constants';
 
 class ApiError extends Error {
   status: number;
@@ -16,6 +18,21 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rate = checkRateLimit(
+    getRateLimitKey(request, 'markets-resolve'),
+    RATE_LIMIT_MAX_SENSITIVE,
+    RATE_LIMIT_WINDOW_MS
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() },
+      }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

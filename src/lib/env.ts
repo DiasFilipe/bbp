@@ -13,4 +13,12 @@ export type Env = z.infer<typeof envSchema>;
 // Parse without strict validation to allow builds
 const env: Env = envSchema.parse(process.env);
 
+export function requireEnv(key: keyof Env) {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}
+
 export { env };
