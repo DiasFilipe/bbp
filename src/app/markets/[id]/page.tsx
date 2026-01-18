@@ -37,6 +37,7 @@ export default function MarketDetailPage() {
 
   const [market, setMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [tradeShares, setTradeShares] = useState<{ [key: string]: number }>({});
   const [tradingOutcome, setTradingOutcome] = useState<string | null>(null);
@@ -57,12 +58,19 @@ export default function MarketDetailPage() {
   const [selectedWinner, setSelectedWinner] = useState<string>('');
   const [isResolving, setIsResolving] = useState<boolean>(false);
 
-  const fetchMarket = async () => {
+  const fetchMarket = async (options?: { refresh?: boolean }) => {
     if (id) {
       try {
+        if (options?.refresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        setError(null);
+
         const response = await fetch(`/api/markets/${id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch market details');
+          throw new Error('Falha ao carregar detalhes do mercado');
         }
         const data = await response.json();
         setMarket(data);
@@ -71,9 +79,10 @@ export default function MarketDetailPage() {
           setSelectedWinner(data.outcomes[0].id);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setError(err instanceof Error ? err.message : 'Erro ao carregar o mercado');
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     }
   };
@@ -198,27 +207,77 @@ export default function MarketDetailPage() {
   };
 
   if (loading) {
-    return <div className="text-center p-10">Loading market details...</div>;
+    return (
+      <div className="container mx-auto p-4 animate-pulse space-y-6">
+        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-8 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="space-y-3">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="h-24 bg-gray-200 dark:bg-gray-700 rounded" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center p-10 text-red-500">Error: {error}</div>;
+    return (
+      <div className="container mx-auto p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <p className="font-semibold mb-2">Não foi possível carregar este mercado.</p>
+          <p className="text-sm mb-4">{error}</p>
+          <button
+            onClick={() => fetchMarket({ refresh: true })}
+            className="inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900 transition"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!market) {
-    return <div className="text-center p-10">Market not found.</div>;
+    return <div className="text-center p-10">Mercado nao encontrado.</div>;
   }
 
   return (
     <div className="container mx-auto p-4">
-      <p className="text-sm text-gray-500 dark:text-pm-gray mb-2">{market.category}</p>
-      <h1 className="text-3xl font-bold mb-2">{market.title}</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">{market.description}</p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+        <div>
+          <p className="text-sm text-gray-500 dark:text-pm-gray mb-2">{market.category}</p>
+          <h1 className="text-3xl font-bold mb-2">{market.title}</h1>
+          <p className="text-gray-600 dark:text-gray-300">{market.description}</p>
+        </div>
+        <div className="flex flex-col items-start gap-2">
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+              market.isResolved
+                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+                : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+            }`}
+          >
+            {market.isResolved ? 'Resolvido' : 'Aberto'}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Resolução: {new Date(market.resolveAt).toLocaleDateString('pt-BR')}
+          </span>
+          <button
+            onClick={() => fetchMarket({ refresh: true })}
+            disabled={refreshing}
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-60"
+          >
+            {refreshing ? 'Atualizando...' : 'Atualizar dados'}
+          </button>
+        </div>
+      </div>
 
       {market.isResolved && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-          <p className="font-bold">Market Resolved</p>
-          <p>This market has been resolved and is no longer available for trading.</p>
+          <p className="font-bold">Mercado resolvido</p>
+          <p>Este mercado foi resolvido e não está mais disponível para negociação.</p>
         </div>
       )}
 
@@ -275,7 +334,7 @@ export default function MarketDetailPage() {
                 <input
                   type="number"
                   min="1"
-                  placeholder="Shares"
+                  placeholder="Ações"
                   className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                   value={tradeShares[outcome.id] || ''}
                   onChange={e => handleSharesChange(outcome.id, e.target.value)}
@@ -303,7 +362,7 @@ export default function MarketDetailPage() {
       {/* Resolution Section */}
       {!market.isResolved && (
         <div className="mt-8 p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner">
-          <h2 className="text-2xl font-bold mb-4">Resolve Market (Admin)</h2>
+          <h2 className="text-2xl font-bold mb-4">Resolver mercado (Admin)</h2>
           <div className="flex items-center space-x-4">
             <select
               value={selectedWinner}

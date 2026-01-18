@@ -14,6 +14,8 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 jest.mock('next-auth', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
 
@@ -25,6 +27,7 @@ jest.mock('next/server', () => ({
 
 const mockUser = { id: 'user-1', email: 'test@example.com', balance: 100 };
 const mockOutcome = { id: 'outcome-1', marketId: 'market-1', price: 0.50, market: { isResolved: false } };
+const mockOtherOutcome = { id: 'outcome-2', marketId: 'market-1', price: 0.50 };
 
 describe('POST /api/trade/buy', () => {
   
@@ -53,17 +56,19 @@ describe('POST /api/trade/buy', () => {
     expect(response.error).toBe('Invalid data provided.');
   });
   
-  it('should return 500 if user has insufficient funds', async () => {
+  it('should return 400 if user has insufficient funds', async () => {
     (getServerSession as jest.Mock).mockResolvedValue({ user: { email: mockUser.email } });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ ...mockUser, balance: 10 }); // User has 10
-    
+
     const transactionMock = jest.fn().mockImplementation(async (callback) => {
-        const tx = {
-            outcome: { findUnique: jest.fn().mockResolvedValue(mockOutcome) }
-        };
-        // Simulate Prisma's transaction logic throwing an error
-        await callback(tx);
-        throw new Error('Insufficient funds.');
+      const tx = {
+        user: { findUnique: jest.fn().mockResolvedValue({ ...mockUser, balance: 10 }) },
+        outcome: {
+          findUnique: jest.fn().mockResolvedValue(mockOutcome),
+          findMany: jest.fn().mockResolvedValue([mockOutcome, mockOtherOutcome]),
+        },
+      };
+      return await callback(tx);
     });
     (prisma.$transaction as jest.Mock).mockImplementation(transactionMock);
     
@@ -74,7 +79,7 @@ describe('POST /api/trade/buy', () => {
 
     const response = await POST(request);
     
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(response.error).toBe('Insufficient funds.');
   });
   
@@ -86,10 +91,12 @@ describe('POST /api/trade/buy', () => {
     const mockTxClient = {
       outcome: {
         findUnique: jest.fn().mockResolvedValue(mockOutcome),
+        findMany: jest.fn().mockResolvedValue([mockOutcome, mockOtherOutcome]),
         update: jest.fn(),
       },
       user: {
-        update: jest.fn().mockResolvedValue({ ...mockUser, balance: 75 }),
+        findUnique: jest.fn().mockResolvedValue(mockUser),
+        update: jest.fn().mockResolvedValue({ ...mockUser, balance: 74.5 }),
       },
       trade: {
         create: jest.fn(),
@@ -113,12 +120,12 @@ describe('POST /api/trade/buy', () => {
     
     expect(response.status).toBe(200);
     expect(response.message).toBe('Purchase successful!');
-    expect(response.balance).toBe(75);
+    expect(response.balance).toBe(74.5);
 
     // Now, assert on the externally defined mock client
     expect(mockTxClient.user.update).toHaveBeenCalledWith({
         where: { id: mockUser.id },
-        data: { balance: { decrement: 25 } },
+        data: { balance: { decrement: 25.5 } },
     });
     expect(mockTxClient.trade.create).toHaveBeenCalled();
     expect(mockTxClient.position.upsert).toHaveBeenCalled();

@@ -27,6 +27,7 @@ interface Trade {
 export default function ActivityFeed() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActivity();
@@ -34,13 +35,16 @@ export default function ActivityFeed() {
 
   const fetchActivity = async () => {
     try {
+      setError(null);
       const response = await fetch('/api/activity?limit=15');
-      if (response.ok) {
-        const data = await response.json();
-        setTrades(data);
+      if (!response.ok) {
+        throw new Error('Falha ao carregar a atividade.');
       }
+      const data = await response.json();
+      setTrades(data);
     } catch (error) {
       console.error('Error fetching activity:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao carregar a atividade.');
     } finally {
       setLoading(false);
     }
@@ -50,7 +54,11 @@ export default function ActivityFeed() {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-4">Atividade Recente</h2>
-        <div className="text-center text-gray-500">Carregando...</div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, index) => (
+            <div key={index} className="h-16 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -61,7 +69,21 @@ export default function ActivityFeed() {
         <span>📊</span> Atividade Recente
       </h2>
 
-      {trades.length === 0 ? (
+      {error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <p className="font-semibold mb-2">Não foi possível carregar a atividade.</p>
+          <p className="mb-3">{error}</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              fetchActivity();
+            }}
+            className="text-sm font-semibold underline underline-offset-4"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : trades.length === 0 ? (
         <p className="text-gray-500 text-center py-4">
           Nenhuma atividade recente
         </p>
@@ -87,6 +109,10 @@ export default function ActivityFeed() {
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {trade.user.name}
+                    </span>
+                    <span className="text-xs text-gray-400">•</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {trade.market.category}
                     </span>
                   </div>
 

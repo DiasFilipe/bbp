@@ -52,6 +52,8 @@ export default function DashboardPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'positions' | 'trades'>('positions');
 
   useEffect(() => {
@@ -66,13 +68,24 @@ export default function DashboardPage() {
     }
   }, [status]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (options?: { refresh?: boolean }) => {
+    if (options?.refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    setError(null);
+
     try {
       const [userRes, positionsRes, tradesRes] = await Promise.all([
         fetch('/api/user/me'),
         fetch('/api/user/positions'),
         fetch('/api/user/trades?limit=20'),
       ]);
+
+      if (!userRes.ok || !positionsRes.ok || !tradesRes.ok) {
+        throw new Error('Falha ao carregar seus dados. Tente novamente.');
+      }
 
       if (userRes.ok) {
         const userData = await userRes.json();
@@ -90,15 +103,29 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao carregar o dashboard.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   if (status === 'loading' || loading) {
     return (
       <div className="container mx-auto p-4">
-        <div className="text-center py-10">Carregando...</div>
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className="h-28 rounded-lg bg-gray-200 dark:bg-gray-700"
+              />
+            ))}
+          </div>
+          <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-64 rounded-lg bg-gray-200 dark:bg-gray-700" />
+        </div>
       </div>
     );
   }
@@ -113,11 +140,39 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Seu dashboard</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Acompanhe seu saldo, posições e histórico recente.
+          </p>
+        </div>
+        <button
+          onClick={() => fetchDashboardData({ refresh: true })}
+          disabled={refreshing}
+          className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition disabled:opacity-60"
+        >
+          {refreshing ? 'Atualizando...' : 'Atualizar dados'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <p>{error}</p>
+            <button
+              onClick={() => fetchDashboardData({ refresh: true })}
+              className="text-sm font-semibold underline underline-offset-4"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* User Summary Card */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Saldo Disponível</p>
             <p className="text-3xl font-bold text-green-600 dark:text-green-400">
@@ -134,6 +189,12 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">Posições Ativas</p>
             <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
               {activePositions.length}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Posições Resolvidas</p>
+            <p className="text-3xl font-bold text-gray-700 dark:text-gray-200">
+              {resolvedPositions.length}
             </p>
           </div>
         </div>

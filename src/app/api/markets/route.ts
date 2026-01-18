@@ -60,11 +60,18 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, description, category, resolveAt, outcomes } = body;
+    const { title, description, category, resolveAt, outcomes, liquidityParameter } = body;
 
     if (!title || !description || !category || !resolveAt || !outcomes || outcomes.length < 2) {
       return NextResponse.json({ error: 'Invalid data provided.' }, { status: 400 });
     }
+
+    const liquidityParamNumber = Number(liquidityParameter);
+    if (liquidityParameter !== undefined && (!Number.isFinite(liquidityParamNumber) || liquidityParamNumber <= 0)) {
+      return NextResponse.json({ error: 'Invalid liquidity parameter.' }, { status: 400 });
+    }
+
+    const initialPrice = 1 / outcomes.length;
 
     const newMarket = await prisma.market.create({
       data: {
@@ -73,9 +80,13 @@ export async function POST(request: Request) {
         category,
         resolveAt,
         creatorId: session.user!.id, // Associate the market with the creator
+        liquidityParameter: Number.isFinite(liquidityParamNumber)
+          ? liquidityParamNumber
+          : undefined,
         outcomes: {
           create: outcomes.map((outcome: { title: string }) => ({
             title: outcome.title,
+            price: initialPrice,
           })),
         },
       },

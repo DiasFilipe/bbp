@@ -4,7 +4,10 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limitParam = parseInt(searchParams.get('limit') || '10', 10);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 50)
+      : 10;
 
     // Fetch recent trades with related data
     const recentTrades = await prisma.trade.findMany({

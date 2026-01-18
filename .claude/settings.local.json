@@ -18,7 +18,9 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(tail:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(tree:*)",
+      "Bash(npm test:*)"
     ]
   }
 }
