@@ -1,11 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "client"
 }
 
@@ -14,71 +8,68 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   name      String?
-  password  String    // Em um cenário real, isso seria um hash
-  balance   Float     @default(1000.0) // Saldo inicial para negociação
-  isAdmin   Boolean   @default(false) // Sistema de roles - identifica administradores
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  markets   Market[]   // Relation to markets created by user
-  trades    Trade[]
+  password  String
+  balance   Float      @default(1000.0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  markets   Market[]
   positions Position[]
+  trades    Trade[]
 }
 
 model Market {
-  id                 String     @id @default(cuid())
-  title              String
-  description        String
-  category           String
-  creatorId          String
-  creator            User       @relation(fields: [creatorId], references: [id])
-  resolveAt          DateTime   // Data em que o mercado será resolvido
-  isResolved         Boolean    @default(false)
-  resolvedOutcomeId  String?    // ID do resultado vencedor
-  liquidityParameter Float      @default(100.0) // Parâmetro b do LMSR
-  outcomes           Outcome[]
-  trades             Trade[]
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  resolvedOutcome    Outcome?   @relation("ResolvedMarket", fields: [resolvedOutcomeId], references: [id])
+  id                String    @id @default(cuid())
+  title             String
+  description       String
+  category          String
+  resolveAt         DateTime
+  isResolved        Boolean   @default(false)
+  resolvedOutcomeId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  creatorId         String
+  creator           User      @relation(fields: [creatorId], references: [id])
+  resolvedOutcome   Outcome?  @relation("ResolvedMarket", fields: [resolvedOutcomeId], references: [id])
+  outcomes          Outcome[]
+  trades            Trade[]
 }
 
 model Outcome {
-  id        String    @id @default(cuid())
-  marketId  String
-  market    Market    @relation(fields: [marketId], references: [id])
-  title     String    // Ex: "Sim", "Não", "Candidato A"
-  price     Float     @default(0.50) // Preço atual do resultado
-  shares    Float     @default(0)    // Total de ações em circulação
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  positions Position[]
-  winningMarket Market[] @relation("ResolvedMarket")
+  id            String     @id @default(cuid())
+  marketId      String
+  title         String
+  price         Float      @default(0.50)
+  shares        Float      @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  winningMarket Market[]   @relation("ResolvedMarket")
+  market        Market     @relation(fields: [marketId], references: [id])
+  positions     Position[]
 }
 
 model Trade {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   marketId  String
-  market    Market   @relation(fields: [marketId], references: [id])
   outcomeId String
-  // outcome   Outcome  @relation(fields: [outcomeId], references: [id]) // Prisma não permite múltiplas relações em cascata no mesmo caminho
-  type      String   // "BUY" ou "SELL"
+  type      String
   shares    Float
-  price     Float    // Preço por ação no momento da transação
+  price     Float
   createdAt DateTime @default(now())
+  market    Market   @relation(fields: [marketId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Position {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   outcomeId String
-  outcome   Outcome  @relation(fields: [outcomeId], references: [id])
-  shares    Float    // Quantidade de ações que o usuário possui
+  shares    Float
+  outcome   Outcome @relation(fields: [outcomeId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 
   @@unique([userId, outcomeId])
 }
